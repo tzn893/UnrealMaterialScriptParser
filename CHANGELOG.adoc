@@ -6,6 +6,11 @@
 
 * Add `dsl::context_counter::is<Pred>()` and convenience overloads to check whether the value matches some predicate (#238, #239).
 
+=== Bug fixes
+
+* `dsl::no_whitespace` did not handle nested `dsl::no_whitespace` correctly.
+* `dsl::no_whitespace` did not re-enable whitespace in child productions.
+
 == Release 2025.05.0
 
 === Potential breaking changes

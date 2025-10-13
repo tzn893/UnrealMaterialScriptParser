@@ -287,76 +287,152 @@ TEST_CASE("dsl::whitespace")
 
 TEST_CASE("dsl::no_whitespace")
 {
-    constexpr auto no_ws = dsl::no_whitespace(LEXY_LIT("ab") >> dsl::try_(LEXY_LIT("c")));
-    CHECK(lexy::is_branch_rule<decltype(no_ws)>);
+    constexpr auto callback
+        = lexy::callback<int>([](const char*) { return 0; }, [](const char*, auto) { return 1; });
 
-    constexpr auto callback = token_callback;
-
-    SUBCASE("as rule")
+    SUBCASE("basic")
     {
-        struct production : test_production_for<decltype(no_ws)>, with_whitespace
+        constexpr auto no_ws = dsl::no_whitespace(LEXY_LIT("ab") >> dsl::try_(LEXY_LIT("c")));
+        CHECK(lexy::is_branch_rule<decltype(no_ws)>);
+
+        SUBCASE("as rule")
+        {
+            struct production : test_production_for<decltype(no_ws)>, with_whitespace
+            {};
+
+            auto empty = LEXY_VERIFY_P(production, "");
+            CHECK(empty.status == test_result::fatal_error);
+            CHECK(empty.trace == test_trace().expected_literal(0, "ab", 0).cancel());
+
+            auto ab = LEXY_VERIFY_P(production, "ab");
+            CHECK(ab.status == test_result::recovered_error);
+            CHECK(ab.trace == test_trace().literal("ab").expected_literal(2, "c", 0).recovery());
+            auto abc = LEXY_VERIFY_P(production, "abc");
+            CHECK(abc.status == test_result::success);
+            CHECK(abc.trace == test_trace().literal("ab").literal("c"));
+
+            auto leading_whitespace = LEXY_VERIFY_P(production, "..abc");
+            CHECK(leading_whitespace.status == test_result::success);
+            CHECK(leading_whitespace.trace
+                  == test_trace().whitespace("..").literal("ab").literal("c"));
+            auto inner_whitespace = LEXY_VERIFY_P(production, "ab..c");
+            CHECK(inner_whitespace.status == test_result::recovered_error);
+            CHECK(inner_whitespace.trace
+                  == test_trace()
+                         .literal("ab")
+                         .expected_literal(2, "c", 0)
+                         .recovery()
+                         .finish()
+                         .whitespace(".."));
+            auto trailing_whitespace = LEXY_VERIFY_P(production, "abc..");
+            CHECK(trailing_whitespace.status == test_result::success);
+            CHECK(trailing_whitespace.trace
+                  == test_trace().literal("ab").literal("c").whitespace(".."));
+        }
+        SUBCASE("as branch")
+        {
+            struct production : test_production_for<decltype(dsl::if_(no_ws))>, with_whitespace
+            {};
+
+            auto empty = LEXY_VERIFY_P(production, "");
+            CHECK(empty.status == test_result::success);
+            CHECK(empty.trace == test_trace());
+
+            auto ab = LEXY_VERIFY_P(production, "ab");
+            CHECK(ab.status == test_result::recovered_error);
+            CHECK(ab.trace == test_trace().literal("ab").expected_literal(2, "c", 0).recovery());
+            auto abc = LEXY_VERIFY_P(production, "abc");
+            CHECK(abc.status == test_result::success);
+            CHECK(abc.trace == test_trace().literal("ab").literal("c"));
+
+            auto leading_whitespace = LEXY_VERIFY_P(production, "..abc");
+            CHECK(leading_whitespace.status == test_result::success);
+            CHECK(leading_whitespace.trace
+                  == test_trace().whitespace("..").literal("ab").literal("c"));
+            auto inner_whitespace = LEXY_VERIFY_P(production, "ab..c");
+            CHECK(inner_whitespace.status == test_result::recovered_error);
+            CHECK(inner_whitespace.trace
+                  == test_trace()
+                         .literal("ab")
+                         .expected_literal(2, "c", 0)
+                         .recovery()
+                         .finish()
+                         .whitespace(".."));
+            auto trailing_whitespace = LEXY_VERIFY_P(production, "abc..");
+            CHECK(trailing_whitespace.status == test_result::success);
+            CHECK(trailing_whitespace.trace
+                  == test_trace().literal("ab").literal("c").whitespace(".."));
+        }
+    }
+    SUBCASE("nested")
+    {
+        constexpr auto rule
+            = dsl::no_whitespace(LEXY_LIT("a") + dsl::no_whitespace(LEXY_LIT("b")) + LEXY_LIT("c"));
+        struct production : test_production_for<decltype(rule)>, with_whitespace
         {};
 
         auto empty = LEXY_VERIFY_P(production, "");
         CHECK(empty.status == test_result::fatal_error);
-        CHECK(empty.trace == test_trace().expected_literal(0, "ab", 0).cancel());
+        CHECK(empty.trace == test_trace().expected_literal(0, "a", 0).cancel());
 
-        auto ab = LEXY_VERIFY_P(production, "ab");
-        CHECK(ab.status == test_result::recovered_error);
-        CHECK(ab.trace == test_trace().literal("ab").expected_literal(2, "c", 0).recovery());
         auto abc = LEXY_VERIFY_P(production, "abc");
         CHECK(abc.status == test_result::success);
-        CHECK(abc.trace == test_trace().literal("ab").literal("c"));
+        CHECK(abc.trace == test_trace().literal("a").literal("b").literal("c"));
 
-        auto leading_whitespace = LEXY_VERIFY_P(production, "..abc");
-        CHECK(leading_whitespace.status == test_result::success);
-        CHECK(leading_whitespace.trace == test_trace().whitespace("..").literal("ab").literal("c"));
-        auto inner_whitespace = LEXY_VERIFY_P(production, "ab..c");
-        CHECK(inner_whitespace.status == test_result::recovered_error);
-        CHECK(inner_whitespace.trace
-              == test_trace()
-                     .literal("ab")
-                     .expected_literal(2, "c", 0)
-                     .recovery()
-                     .finish()
-                     .whitespace(".."));
-        auto trailing_whitespace = LEXY_VERIFY_P(production, "abc..");
-        CHECK(trailing_whitespace.status == test_result::success);
-        CHECK(trailing_whitespace.trace
-              == test_trace().literal("ab").literal("c").whitespace(".."));
+        auto a_space_b_space_c = LEXY_VERIFY_P(production, "a..b..c");
+        CHECK(a_space_b_space_c.status == test_result::fatal_error);
+        CHECK(a_space_b_space_c.trace
+              == test_trace().literal("a").expected_literal(1, "b", 0).cancel());
+
+        auto a_b_space_c = LEXY_VERIFY_P(production, "ab..c");
+        CHECK(a_b_space_c.status == test_result::fatal_error);
+        CHECK(a_b_space_c.trace
+              == test_trace().literal("a").literal("b").expected_literal(2, "c", 0).cancel());
     }
-    SUBCASE("as branch")
+    SUBCASE("child production")
     {
-        struct production : test_production_for<decltype(dsl::if_(no_ws))>, with_whitespace
+        constexpr auto child_rule = LEXY_LIT("b");
+        struct child : test_production_for<decltype(child_rule)>
+        {};
+
+        constexpr auto rule = dsl::no_whitespace(LEXY_LIT("a") + dsl::p<child> + LEXY_LIT("c"));
+        struct production : test_production_for<decltype(rule)>, with_whitespace
         {};
 
         auto empty = LEXY_VERIFY_P(production, "");
-        CHECK(empty.status == test_result::success);
-        CHECK(empty.trace == test_trace());
+        CHECK(empty.status == test_result::fatal_error);
+        CHECK(empty.trace == test_trace().expected_literal(0, "a", 0).cancel());
 
-        auto ab = LEXY_VERIFY_P(production, "ab");
-        CHECK(ab.status == test_result::recovered_error);
-        CHECK(ab.trace == test_trace().literal("ab").expected_literal(2, "c", 0).recovery());
         auto abc = LEXY_VERIFY_P(production, "abc");
         CHECK(abc.status == test_result::success);
-        CHECK(abc.trace == test_trace().literal("ab").literal("c"));
-
-        auto leading_whitespace = LEXY_VERIFY_P(production, "..abc");
-        CHECK(leading_whitespace.status == test_result::success);
-        CHECK(leading_whitespace.trace == test_trace().whitespace("..").literal("ab").literal("c"));
-        auto inner_whitespace = LEXY_VERIFY_P(production, "ab..c");
-        CHECK(inner_whitespace.status == test_result::recovered_error);
-        CHECK(inner_whitespace.trace
+        CHECK(abc.trace
               == test_trace()
-                     .literal("ab")
-                     .expected_literal(2, "c", 0)
-                     .recovery()
+                     .literal("a")
+                     .production("test_production")
+                     .literal("b")
                      .finish()
-                     .whitespace(".."));
-        auto trailing_whitespace = LEXY_VERIFY_P(production, "abc..");
-        CHECK(trailing_whitespace.status == test_result::success);
-        CHECK(trailing_whitespace.trace
-              == test_trace().literal("ab").literal("c").whitespace(".."));
+                     .literal("c"));
+
+        auto a_space_b_space_c = LEXY_VERIFY_P(production, "a..b..c");
+        CHECK(a_space_b_space_c.status == test_result::fatal_error);
+        CHECK(a_space_b_space_c.trace
+              == test_trace()
+                     .literal("a")
+                     .production("test_production")
+                     .expected_literal(1, "b", 0)
+                     .cancel()
+                     .cancel());
+
+        auto a_b_space_c = LEXY_VERIFY_P(production, "ab..c");
+        CHECK(a_b_space_c.status == test_result::success);
+        CHECK(a_b_space_c.trace
+              == test_trace()
+                     .literal("a")
+                     .production("test_production")
+                     .literal("b")
+                     .whitespace("..")
+                     .finish()
+                     .literal("c"));
     }
 }
 

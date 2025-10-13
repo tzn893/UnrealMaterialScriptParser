@@ -122,15 +122,13 @@ set(header_files
         ${include_dir}/lexeme.hpp
         ${include_dir}/parse_tree.hpp
         ${include_dir}/token.hpp
-        ${include_dir}/visualize.hpp
-        PARENT_SCOPE)
+        ${include_dir}/visualize.hpp)
 set(ext_header_files
         ${ext_include_dir}/compiler_explorer.hpp
         ${ext_include_dir}/parse_tree_algorithm.hpp
         ${ext_include_dir}/parse_tree_doctest.hpp
         ${ext_include_dir}/report_error.hpp
-        ${ext_include_dir}/shell.hpp
-        PARENT_SCOPE)
+        ${ext_include_dir}/shell.hpp)
 
 # Base target for common options.
 add_library(_lexy_base INTERFACE)

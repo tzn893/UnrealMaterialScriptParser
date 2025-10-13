@@ -246,6 +246,8 @@ constexpr _escape-dsl_ rule(_branch-rule_ auto r) const;
 [.lead]
 `.rule()` specifies an escape sequence that simply tries to parse the {{% branch-rule %}} `r`.
 
+NOTE: If `r` uses {{% docref "lexy::dsl::p" %}} or {{% docref "lexy::dsl::recurse" %}}, whitespace is re-enabled inside that production.
+
 === Escape sequence `.capture()`
 
 {{% interface %}}
@@ -260,6 +262,8 @@ constexpr _escape-dsl_ capture(_branch-rule_ auto r) const
 `.capture()` specifies an escape sequence that tries to parse the {{% branch-rule %}} `t` and produces a {{% docref "lexy::lexeme" %}}.
 
 It is equivalent to {{% docref "lexy::dsl::capture" %}}.
+
+NOTE: If `r` uses {{% docref "lexy::dsl::p" %}} or {{% docref "lexy::dsl::recurse" %}}, whitespace is re-enabled inside that production.
 
 === Escape sequence `.symbol()`
 

@@ -205,6 +205,113 @@ namespace grammar
 } // namespace grammar
 } // namespace
 
+namespace ums
+{
+namespace dsl = lexy::dsl;
+
+constexpr const char* ums_code_keyword = "_Code";
+
+struct ums_identifier
+{
+    static constexpr auto rule
+        = lexyd::identifier(lexyd::ascii::alpha_underscore, lexyd::ascii::alpha_digit_underscore);
+};
+
+struct ums_white_space
+{
+    static constexpr auto rule = dsl::while_(lexyd::ascii::space);
+};
+
+struct ums_float
+{
+    static constexpr auto rule = dsl::opt(dsl::capture(dsl::lit_c<'-'>)) + dsl::integer<int>
+                                 + dsl::capture(dsl::period) + dsl::opt(dsl::integer<int>)
+                                 + dsl::opt(dsl::lit_c<'f'> | dsl::lit_c<'F'>);
+};
+
+struct ums_vector4
+{
+    static constexpr auto rule = dsl::parenthesized( dsl::times<4>(dsl::p<ums_white_space>  + dsl::p<ums_float> + dsl::p<ums_white_space>,
+                      dsl::sep(dsl::comma)));
+};
+
+struct ums_comment_line
+{
+    static constexpr auto rule = LEXY_LIT("//") + dsl::until(dsl::newline);
+};
+
+struct ums_iteral_value
+{
+    static constexpr auto rule
+        = dsl::peek(LEXY_LIT("\""))
+              >> (LEXY_LIT("\"") + dsl::p<ums_identifier> + LEXY_LIT("\""))
+          | dsl::peek(LEXY_LIT("(")) >> dsl::p<ums_vector4> | dsl::else_ >> dsl::p<ums_float>;
+};
+
+struct ums_properties_definition
+{
+    static constexpr auto rule = dsl::p<ums_identifier> + dsl::p<ums_white_space> + LEXY_LIT("[")
+                                 + dsl::p<ums_white_space> + LEXY_LIT("\"") + dsl::p<ums_identifier>
+                                 + dsl::p<ums_white_space> + LEXY_LIT("\"") + dsl::p<ums_white_space> + LEXY_LIT("]") + dsl::p<ums_white_space>
+                                    + LEXY_LIT("=") + dsl::p<ums_white_space>
+                                 + dsl::p<ums_iteral_value> + dsl::p<ums_white_space>  + LEXY_LIT(";");
+};
+
+// 语法类似 !ShaderMode=Forward
+struct ums_attributes_definition
+{
+    static constexpr auto rule = LEXY_LIT("!") + dsl::p<ums_white_space> + dsl::p<ums_identifier> + dsl::p<ums_white_space> + LEXY_LIT("=") 
+        + dsl::p<ums_white_space> + dsl::p<ums_identifier> + dsl::p<ums_white_space>  + LEXY_LIT(";");
+};
+
+struct ums_properties_body
+{
+    static constexpr auto rule = dsl::while_(
+        dsl::peek(LEXY_LIT("_")) >> dsl::p<ums_properties_definition> + dsl::p<ums_white_space>
+        | dsl::peek(LEXY_LIT("!")) >> dsl::p<ums_attributes_definition> + dsl::p<ums_white_space>
+        | dsl::peek(LEXY_LIT("//")) >> dsl::p<ums_comment_line> + dsl::p<ums_white_space>);
+};
+
+struct ums_properties
+{
+    static constexpr auto rule = LEXY_LIT("_Properties") + dsl::p<ums_white_space>
+                                 + LEXY_LIT("{") + dsl::p<ums_white_space> + dsl::p<ums_properties_body>
+                                 + dsl::p<ums_white_space> + LEXY_LIT("}");
+};
+
+struct ums_function_parameter
+{
+
+};
+
+
+struct ums_function_signature
+{
+    static constexpr auto rule = dsl::p<ums_identifier> + dsl::p<ums_white_space> // 函数返回值
+                                 + dsl::p<ums_identifier> + dsl::p<ums_white_space> // 函数名称
+        +LEXY_LIT("(") + dsl::p<ums_white_space> + LEXY_LIT(")");
+};
+
+struct ums_function
+{
+    static constexpr auto rule = dsl::p<ums_function_signature> + dsl::p<ums_white_space>
+        + LEXY_LIT("{")  + /*TODO function的Body*/ + LEXY_LIT("}");
+};
+
+
+struct ums_code
+{
+    static constexpr auto rule = LEXY_LIT("_Code");
+};
+
+struct ums
+{
+    // ums_code 和 ums_properties 缺一不可，顺序任意，中间可间隔任意空格。
+    static constexpr auto rule = dsl::p<ums_white_space> + dsl::combination(dsl::p<ums_code> + dsl::p<ums_white_space>,
+                                                  dsl::p<ums_properties> + dsl::p<ums_white_space>);
+};
+} // namespace ums
+
 #ifndef LEXY_TEST
 int main(int argc, char** argv)
 {
@@ -230,4 +337,3 @@ int main(int argc, char** argv)
     message.value().print();
 }
 #endif
-

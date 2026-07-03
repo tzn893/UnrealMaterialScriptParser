@@ -220,6 +220,7 @@ struct ums_identifier
 struct ums_white_space
 {
     static constexpr auto rule = dsl::while_(lexyd::ascii::space);
+    static constexpr auto value = lexy::as_string<std::string>;
 };
 
 struct ums_float
@@ -238,6 +239,11 @@ struct ums_vector4
 struct ums_comment_line
 {
     static constexpr auto rule = LEXY_LIT("//") + dsl::until(dsl::newline);
+};
+
+struct ums_comment_block
+{
+    static constexpr auto rule = LEXY_LIT("/*") + dsl::until(LEXY_LIT("*/"));
 };
 
 struct ums_iteral_value
@@ -281,34 +287,68 @@ struct ums_properties
 
 struct ums_function_parameter
 {
-
+    static constexpr auto rule = dsl::opt(LEXY_LIT("inout")  | LEXY_LIT("in") | LEXY_LIT("out")) // hlsl有 inout, in, out 三种额外参数
+                                 + dsl::p<ums_white_space> 
+        + dsl::p<ums_identifier> + dsl::p<ums_white_space> + dsl::p<ums_identifier>;
 };
-
 
 struct ums_function_signature
 {
-    static constexpr auto rule = dsl::p<ums_identifier> + dsl::p<ums_white_space> // 函数返回值
+    static constexpr auto rule = dsl::p<ums_identifier> + dsl::p<ums_white_space>   // 函数返回值
                                  + dsl::p<ums_identifier> + dsl::p<ums_white_space> // 函数名称
-        +LEXY_LIT("(") + dsl::p<ums_white_space> + LEXY_LIT(")");
+                                 + LEXY_LIT("(") + dsl::p<ums_white_space>
+                                 + (dsl::peek(lexyd::ascii::alpha_underscore) >> dsl::p<ums_function_parameter> | dsl::else_ >> dsl::nullopt)  + dsl::p<ums_white_space>// 第一个参数
+                                 + dsl::while_(dsl::peek(LEXY_LIT(",")) >> (LEXY_LIT(",") + dsl::p<ums_white_space> + dsl::p<ums_function_parameter> + dsl::p<ums_white_space>)) // 如果有,、接着解析后续参数，直到所有参数被解析完
+                                 + LEXY_LIT(")");
 };
+
+struct ums_scoped_body
+{
+    static constexpr auto rule = LEXY_LIT("{") + dsl::while_(
+        dsl::peek_not(LEXY_LIT("}")) >> (
+            dsl::peek(LEXY_LIT("{")) >> dsl::recurse<ums_scoped_body>
+            | dsl::else_ >> dsl::code_point
+        )
+    ) + LEXY_LIT("}");
+};
+
 
 struct ums_function
 {
     static constexpr auto rule = dsl::p<ums_function_signature> + dsl::p<ums_white_space>
-        + LEXY_LIT("{")  + /*TODO function的Body*/ + LEXY_LIT("}");
+        + dsl::p<ums_scoped_body>;
 };
 
+struct ums_include_line
+{
+    static constexpr auto rule = LEXY_LIT("#include") + dsl::p<ums_white_space> + LEXY_LIT("\"") + dsl::until(LEXY_LIT("\""));
+};
+
+
+// struct ums_code
+// {
+//     static constexpr auto rule = LEXY_LIT("_Code") + dsl::p<ums_white_space> + LEXY_LIT("{")
+//     + dsl::p<ums_white_space>
+//           + dsl::while_(dsl::peek_not("}")
+//         >> (dsl::peek("//") >> dsl::p<ums_comment_line> + dsl::p<ums_white_space>
+//             | dsl::peek("/*") >> dsl::p<ums_comment_block> + dsl::p<ums_white_space>
+//             | dsl::else_ >> dsl::p<ums_function>))
+//     + LEXY_LIT("}");
+// };
 
 struct ums_code
 {
-    static constexpr auto rule = LEXY_LIT("_Code");
+    static constexpr auto rule = LEXY_LIT("_Code") + dsl::p<ums_white_space> + LEXY_LIT("{")
+    + dsl::p<ums_white_space>
+    + dsl::until(dsl::peek(LEXY_LIT("}")) >> dsl::code_point)
+    + LEXY_LIT("}");
 };
+
 
 struct ums
 {
     // ums_code 和 ums_properties 缺一不可，顺序任意，中间可间隔任意空格。
-    static constexpr auto rule = dsl::p<ums_white_space> + dsl::combination(dsl::p<ums_code> + dsl::p<ums_white_space>,
-                                                  dsl::p<ums_properties> + dsl::p<ums_white_space>);
+    static constexpr auto rule = dsl::p<ums_code>;
 };
 } // namespace ums
 
@@ -330,7 +370,7 @@ int main(int argc, char** argv)
     }
 
     auto message
-        = lexy::parse<grammar::message>(file.buffer(), lexy_ext::report_error.path(argv[1]));
+        = lexy::parse<ums::ums>(file.buffer(), lexy_ext::report_error.path(argv[1]));
     if (!message)
         return 2;
 

@@ -1,0 +1,16 @@
+_Properties
+{
+    // 错误：_Properties 块内不支持块注释 /* */，
+    // ums_properties_body 只接受以 _ / ! / // 开头的条目，
+    // 遇到 /* 会无法消费并触发解析错误。
+    /* this block comment is not allowed here */
+    _X["X"] = 1.0;
+}
+
+_Code
+{
+    void MainPS(inout PixelParametersEX Params)
+    {
+        Params.Color = float3(0.0, 0.0, 0.0);
+    }
+}

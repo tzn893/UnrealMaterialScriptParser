@@ -1,0 +1,21 @@
+_Properties
+{
+    _Time["Time"] = 0.1;
+    !ShaderModel = Opaque;
+}
+
+_Code
+{
+    // 错误：函数参数只有一个类型标识符 "int"，缺少参数名。
+    // ums_function_parameter 规则要求 identifier + identifier（类型 + 名称）。
+    // 解析到 ")" 而非第二个 identifier 时会触发 grammar 解析错误。
+    void BrokenFunc(int)
+    {
+        int x = 0;
+    }
+
+    void MainPS(inout PixelParametersEX Params)
+    {
+        Params.Color = float3(0.0, 0.0, 0.0);
+    }
+}

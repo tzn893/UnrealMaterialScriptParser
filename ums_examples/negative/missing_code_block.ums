@@ -1,0 +1,9 @@
+_Properties
+{
+    // 错误：本文件缺少 _Code { ... } 块。
+    // DoParse 会检测到 b_code_parsed == false，返回 _ParseError: "_Code Block is missing"
+    _Time["Time"] = 0.1;
+    _MainColor["MainColor"] = ( 1.0f, 0.0, 0.0, 1.0 );
+    _MainTex["MainTex"] = "T_Base_Dirt";
+    !ShaderModel = Opaque;
+}

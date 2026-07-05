@@ -1,0 +1,15 @@
+_Properties
+{
+    _Time["Time"] = 0.1;
+    // 错误：属性声明的值使用了数字 5，但 ums_attributes_definition
+    // 要求 value 为 identifier（必须以字母或下划线开头），数字不合法。
+    !Count = 5;
+}
+
+_Code
+{
+    void MainPS(inout PixelParametersEX Params)
+    {
+        Params.Color = float3(0.0, 0.0, 0.0);
+    }
+}

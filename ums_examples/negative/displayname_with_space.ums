@@ -1,0 +1,15 @@
+_Properties
+{
+    // 错误：显示名 "My Name" 含有空格。DisplayName 使用 ums_identifier，
+    // 只能包含字母/数字/下划线，遇到空格会解析失败。
+    _X["My Name"] = 1.0;
+    !ShadingModel = Opaque;
+}
+
+_Code
+{
+    void MainPS(inout PixelParametersEX Params)
+    {
+        Params.Color = float3(0.0, 0.0, 0.0);
+    }
+}

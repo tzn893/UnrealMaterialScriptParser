@@ -1,0 +1,14 @@
+_Properties
+{
+    // 错误：属性定义缺少结尾分号 ;
+    _X["X"] = 1.0
+    !ShadingModel = Opaque;
+}
+
+_Code
+{
+    void MainPS(inout PixelParametersEX Params)
+    {
+        Params.Color = float3(0.0, 0.0, 0.0);
+    }
+}

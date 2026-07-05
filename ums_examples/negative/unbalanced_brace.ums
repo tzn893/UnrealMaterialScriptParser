@@ -1,0 +1,26 @@
+_Properties
+{
+    _Time["Time"] = 0.1;
+    _MainColor["MainColor"] = ( 1.0, 0.0, 0.0, 1.0 );
+    !ShaderModel = Opaque;
+}
+
+_Code
+{
+    // 错误：MainPS 的函数体左花括号 { 与右花括号 } 不匹配，
+    // 缺少最外层的闭合 }。ums_scoped_body 会一直吃到文件末尾，
+    // 然后期待 } 失败，触发 grammar 解析错误。
+    void MainPS(inout PixelParametersEX Params)
+    {
+        Params.Color = float3(1.0, 0.0, 0.0);
+        if (Params.uv.x > 0.5f)
+        {
+            Params.Color = float3(0.0, 1.0, 0.0);
+        }
+        // 这里少写了一个 } 来闭合 MainPS 的函数体
+
+    void AnotherFunc()
+    {
+        int dummy = 42;
+    }
+}

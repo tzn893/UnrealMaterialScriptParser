@@ -1,0 +1,49 @@
+_Properties
+{
+    // 行注释穿插
+    _Time["Time"] = 0.1f;
+    _ColorA["ColorA"] = (1.0, 0.5, 0.25, 1.0);
+    _ColorB["ColorB"] = (0.2, 0.4, 0.8, 1.0);
+    _TexA["TexA"] = "T_A";
+    _TexB["TexB"] = "T_B";
+    !ShadingModel = Surface;
+    !TwoSided = true;
+}
+
+_Code
+{
+    #include "/Game/Content/Common/Math.hlsl"
+    #include "/Game/Content/Common/Noise.hlsl"
+
+    /* 块注释：工具函数区 */
+    float3 MixTwo(float3 a, float3 b, inout float t)
+    {
+        return lerp(a, b, t);
+    }
+
+    // 行注释：主函数前
+    void MainPS(inout PixelParametersEX Params, inout FPixelMaterialInputs In)
+    {
+        float3 ca = SampleTexture(_TexA, Params.uv).rgb * _ColorA.xyz;
+        float3 cb = SampleTexture(_TexB, Params.uv).rgb * _ColorB.xyz;
+
+        float t = sin(_Time) * 0.5 + 0.5;
+        float3 mixed = MixTwo(ca, cb, t);
+
+        if (t > 0.5f)
+        {
+            mixed = mixed * 1.2f;
+        }
+        else if (t < 0.25f)
+        {
+            mixed = mixed * 0.8f;
+        }
+        else
+        {
+            mixed = mixed;
+        }
+
+        Params.Color = mixed;
+        In.Roughness = 0.5f;
+    }
+}

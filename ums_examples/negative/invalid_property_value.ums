@@ -1,0 +1,17 @@
+_Properties
+{
+    _Time["Time"] = 0.1;
+    // 错误：属性值 "hello" 既不是数字、也不是 (向量)、也不是 "字符串"。
+    // ums_literal_value 的 else 分支会尝试 ums_float，而 ums_float
+    // 期望以数字开头，遇到字母 'h' 会解析失败。
+    _Broken["Broken"] = hello;
+    !ShaderModel = Opaque;
+}
+
+_Code
+{
+    void MainPS(inout PixelParametersEX Params)
+    {
+        Params.Color = float3(0.0, 0.0, 0.0);
+    }
+}

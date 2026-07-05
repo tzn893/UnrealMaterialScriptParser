@@ -1,0 +1,16 @@
+_Properties
+{
+    _X["X"] = 1.0;
+}
+
+_Code
+{
+    // 错误：_Code 块顶层出现了裸语句（非函数/注释/include），
+    // ums_code 的 while_ 期待函数定义，解析 float3 temp = ... 会失败。
+    float3 temp = float3(1.0, 0.0, 0.0);
+
+    void MainPS(inout PixelParametersEX Params)
+    {
+        Params.Color = temp;
+    }
+}

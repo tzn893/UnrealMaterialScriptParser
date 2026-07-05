@@ -1,0 +1,17 @@
+_Properties
+{
+    _Time["Time"] = 0.1;
+    // 错误：属性名 "Time2" 以字母 T 开头，而不是下划线 _。
+    // ums_properties_body 的 while_ 只接受以 _ / ! / // 开头的条目，
+    // 遇到 Time2 后无法消费，进而期待 } 但读到 T，触发解析错误。
+    Time2["DisplayName"] = 0.5;
+    !ShaderModel = Opaque;
+}
+
+_Code
+{
+    void MainPS(inout PixelParametersEX Params)
+    {
+        Params.Color = float3(0.0, 0.0, 0.0);
+    }
+}

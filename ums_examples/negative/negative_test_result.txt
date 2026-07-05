@@ -1,0 +1,178 @@
+﻿UMS Negative Examples Test Result
+Generated : 2026-07-05 23:00:43
+Directory : E:\work\UnrealMaterialScriptParser\ums_examples\negative\
+========================================
+
+----------------------------------------
+File: attribute_value_number.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_identifier
+     |
+   6 |     !Count = 5;
+     |              ^ expected ASCII.alpha-underscore
+
+
+
+----------------------------------------
+File: code_top_level_expr.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_function_signature
+     |
+  10 |     float3 temp = float3(1.0, 0.0, 0.0);
+     |                 ^ expected '('
+
+
+
+----------------------------------------
+File: displayname_with_space.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_properties_definition
+     |
+   5 |     _X["My Name"] = 1.0;
+     |            ^ expected '"'
+
+
+
+----------------------------------------
+File: example0_invalid_parameter_in_main.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_identifier
+     |
+  48 |     void MainPS(inout PixelParametersEX Params, )
+     |                                                 ^ expected ASCII.alpha-underscore
+
+
+
+----------------------------------------
+File: function_param_without_name.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_identifier
+     |
+  12 |     void BrokenFunc(int)
+     |                        ^ expected ASCII.alpha-underscore
+
+
+
+----------------------------------------
+File: include_no_closing_quote.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_include_line
+     |
+  10 |     #include "/Game/Content/Common/Broken.hlsl
+     |     ~ beginning here
+     |
+  17 | 
+     | ^ expected '"'
+
+
+
+----------------------------------------
+File: integer_not_float.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_float
+     |
+   5 |     _Count["Count"] = 5;
+     |                        ^ expected '.'
+
+
+
+----------------------------------------
+File: invalid_property_identifier.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_properties
+     |
+   1 | _Properties
+     | ~ beginning here
+     |
+   7 |     Time2["DisplayName"] = 0.5;
+     |     ^ expected '}'
+
+
+
+----------------------------------------
+File: invalid_property_value.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_float
+     |
+   7 |     _Broken["Broken"] = hello;
+     |                         ^ expected digit.decimal
+
+
+
+----------------------------------------
+File: missing_code_block.ums
+[EXPECTED FAIL] ResultCode = 2
+ErrorMsg:
+_Code Block is missing
+
+----------------------------------------
+File: missing_properties_block.ums
+[EXPECTED FAIL] ResultCode = 2
+ErrorMsg:
+_Properties Block is missing
+
+----------------------------------------
+File: missing_semicolon.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_properties_definition
+     |
+   4 |     _X["X"] = 1.0
+     |     ~ beginning here
+     |
+   5 |     !ShadingModel = Opaque;
+     |     ^ expected ';'
+
+
+
+----------------------------------------
+File: props_block_comment.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_properties
+     |
+   1 | _Properties
+     | ~ beginning here
+     |
+   6 |     /* this block comment is not allowed here */
+     |     ^ expected '}'
+
+
+
+----------------------------------------
+File: unbalanced_brace.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_identifier
+     |
+  20 |         // \u8FD9\u91CC\u5C11\u5199\u4E86\u4E00\u4E2A } \u6765\u95ED\u5408 MainPS \u7684\u51FD\u6570\u4F53
+     |                                                         ^^^^^^ expected ASCII.alpha-underscore
+
+
+
+----------------------------------------
+File: vector_wrong_count.ums
+[EXPECTED FAIL] ResultCode = 1
+ErrorMsg:
+error: while parsing ums_vector4
+     |
+   4 |     _V["V"] = (1.0, 0.0, 0.0);
+     |                             ^ expected ','
+
+
+
+========================================
+Summary:
+  Total files        : 15
+  Expected failures  : 15
+  Unexpected success : 0
+========================================

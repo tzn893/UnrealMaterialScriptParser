@@ -1,0 +1,15 @@
+_Properties
+{
+    // 错误：属性值使用了整数 5（缺少小数点）。
+    // ums_float 要求 digits + period + digits，整数不满足，触发 grammar error。
+    _Count["Count"] = 5;
+    !ShadingModel = Opaque;
+}
+
+_Code
+{
+    void MainPS(inout PixelParametersEX Params)
+    {
+        Params.Color = float3(0.0, 0.0, 0.0);
+    }
+}

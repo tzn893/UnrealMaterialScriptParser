@@ -1,0 +1,120 @@
+_Properties
+{
+    // ===== 标量参数 =====
+    _Time["Time"] = 0.1;
+    _Roughness["Roughness"] = 0.7f;
+    _Metallic["Metallic"] = 0.0f;
+    _OpacityMask["OpacityMask"] = 1.0;
+
+    // ===== 向量参数 =====
+    _MainColor["MainColor"] = ( 1.0f, 0.5, 0.356, 0.023f );
+    _Emissive["EmissiveColor"] = ( 0.0, 0.0, 0.0, 1.0 );
+    _SpecularTint["SpecularTint"] = ( 0.12, 0.12, 0.12, 1.0 );
+
+    // ===== 纹理参数 =====
+    _MainTex["BaseTexture"] = "T_Base_Dirt";
+    _NormalTex["NormalMap"] = "T_Normal_Rock";
+    _ORMTex["ORMTexture"] = "T_ORM_Generic";
+
+    // ===== 材质属性声明 =====
+    !ShaderModel = Opaque;
+    !BlendMode = Masked;
+    !ShadingModel = Surface;
+    !TwoSided = true;
+}
+
+_Code
+{
+    // ===== 公共 include =====
+    #include "/Game/Content/Common/RayMarching.hlsli"
+    #include "/Game/Content/Common/MathHelpers.hlsl"
+    #include "/Game/Content/Materials/Custom/Noise.hlsl"
+
+    // ===== 单点光照计算 =====
+    float3 CalculateLighting(float3 WorldPos, float3 Normal, inout float Attenuation)
+    {
+        float3 lightDir = normalize(_MainColor.xyz - WorldPos);
+        float dist = length(lightDir);
+        Attenuation = 1.0f / (dist * dist + 1.0f);
+
+        float ndotl = max(dot(Normal, lightDir), 0.0f);
+        float3 diffuse = _MainColor.rgb * ndotl * Attenuation;
+
+        // 高光项
+        float3 viewDir = normalize(GetCameraPosition() - WorldPos);
+        float3 halfDir = normalize(lightDir + viewDir);
+        float spec = pow(max(dot(Normal, halfDir), 0.0f), 64.0f);
+
+        return diffuse + spec * _SpecularTint.rgb;
+    }
+
+    // ===== 在场景中做光线步进 =====
+    HitPoint RayMarch(inout Ray r, out float hitDist)
+    {
+        hitDist = 0.0f;
+        HitPoint hp;
+        float3 p = r.o;
+
+        for (float t = 0.1f; t < 1000.0f; t += 0.1f)
+        {
+            p = r.o + r.d * t;
+            if (sdf(p) < 0.01f)
+            {
+                hp = rayHit(p);
+                hitDist = t;
+                break;
+            }
+            else
+            {
+                hp.color = _Emissive.rgb;
+            }
+        }
+
+        return hp;
+    }
+
+    // ===== 纹理采样辅助 =====
+    float3 SampleBaseColor(float2 uv)
+    {
+        float4 raw = SampleTexture(_MainTex, uv);
+        float3 orm = SampleTexture(_ORMTex, uv).rgb;
+
+        float3 tinted = raw.rgb * _MainColor.xyz;
+        tinted *= lerp(float3(1.0, 1.0, 1.0), orm, 0.5f);
+        return tinted;
+    }
+
+    // ===== 像素着色主函数 =====
+    void MainPS(inout PixelParametersEX Params, inout FPixelMaterialInputs PixelMaterialInputs)
+    {
+        float3 worldPos = GetWorldPosition(Params);
+        float3 normal = GetWorldNormal(Params);
+
+        float atten = 1.0f;
+        float3 lighting = CalculateLighting(worldPos, normal, atten);
+
+        Ray ray;
+        ray.o = worldPos;
+        ray.d = normal;
+
+        float dist;
+        HitPoint hp = RayMarch(ray, dist);
+
+        if (dist > 0.0f)
+        {
+            float3 base = SampleBaseColor(Params.uv);
+            base = base + lighting;
+            base = lerp(base, hp.color, 0.5f);
+            base = base * (sin(_Time) * 0.5 + 0.5);
+
+            Params.Color = base;
+            PixelMaterialInputs.Roughness = _Roughness * orm.g;
+            PixelMaterialInputs.Metallic = _Metallic;
+        }
+        else
+        {
+            Params.Color = SampleBaseColor(Params.uv) * _MainColor.xyz;
+            PixelMaterialInputs.Roughness = _Roughness;
+        }
+    }
+}

@@ -1,0 +1,56 @@
+_Properties
+{
+    // 简单标量
+    _Time["Time"] = 1.0f;
+    _Speed["Speed"] = 2.0f;
+
+    // 颜色
+    _Tint["Tint"] = ( 0.2, 0.4, 0.8, 1.0 );
+    _Accent["Accent"] = ( 1.0, 0.85, 0.2, 1.0 );
+
+    // 纹理
+    _DetailTex["DetailTexture"] = "T_Detail_Noise";
+
+    // 材质属性
+    !ShadingModel = Surface;
+    !BlendMode = Translucent;
+}
+
+_Code
+{
+    /*
+     * 这是一个多行块注释（block comment）。
+     * 解析器应当忽略块注释内的所有内容，
+     * 无论里面出现什么奇怪的符号 { } ( ) ; #include "xxx"
+     * 都不应该影响解析结果。
+     */
+    float4 TintColor(in float factor)
+    {
+        /* 行内块注释：这里故意写一个看似函数调用的内容
+           void Broken(inout int x) { x = 1; }
+           它应当被整个忽略 */
+        return float4(_Tint.xyz * factor, 1.0f);
+    }
+
+    /* 另一个块注释，紧跟在函数之间 */
+    float4 MixAccent(inout float4 base, float t)
+    {
+        /* 嵌套风格的块注释并不会真的嵌套，解析器在遇到第一个结束符时即停止整段忽略 */
+        base.rgb = lerp(base.rgb, _Accent.xyz, t);
+        return base;
+    }
+
+    void MainPS(inout PixelParametersEX Params)
+    {
+        /* 计算动画偏移 */
+        float t = _Speed * (sin(_Time) * 0.5 + 0.5);
+        float4 col = TintColor(t);
+
+        /* 叠加细节纹理 */
+        float3 detail = SampleTexture(_DetailTex, Params.uv).rgb;
+        col.rgb = col.rgb * detail;
+
+        col = MixAccent(col, 0.3f);
+        Params.Color = col.rgb;
+    }
+}

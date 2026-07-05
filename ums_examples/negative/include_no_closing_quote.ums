@@ -1,0 +1,16 @@
+_Properties
+{
+    _X["X"] = 1.0;
+}
+
+_Code
+{
+    // 错误：#include 路径缺少闭合引号 "，until("\"") 会一直读到
+    // 文件末尾而失败，触发 grammar error。
+    #include "/Game/Content/Common/Broken.hlsl
+
+    void MainPS(inout PixelParametersEX Params)
+    {
+        Params.Color = float3(0.0, 0.0, 0.0);
+    }
+}

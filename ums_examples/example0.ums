@@ -1,0 +1,72 @@
+_Properties
+{
+    // 属性列表
+    _Time["Time"] = 0.1;
+    _MainColor["MainColor"] = ( 1.0f, 0.5, 0.356, 0.023f );
+    _MainTex["MainTex"] = "T_Base_Dirt";
+
+    // 材质属性
+    !ShaderModel = Opaque;
+}
+
+_Code
+{
+    // 一些include 
+    #include "/Game/Content/Common/RayMarching.hlsli"
+    // 以后可以支持自定义Material Function
+    #include "/Game/Content/Materials/Custom/MF"
+
+    HitPoint RayMarching(Ray r, inout int isHit)
+    {
+        HitPoint hp;
+        if(isHit)
+        {
+            return hp;
+        }
+
+        const float max_distance = 1000.0f;
+        const float step = 0.1f;
+
+        float3 origin = r.o;
+        isHit = 0;
+
+        for(float t = 0; t < max_distance; t += step)
+        {
+            float3 p = origin + r.d * t;
+            if(sdf(p) < 0.0f)
+            {
+                hp = rayHit(p);
+                isHit = 1;
+                break;
+            }
+        }
+
+        return hp;
+    }
+
+
+    void MainPS(inout PixelParametersEX Params)
+    {
+        float3 origin = GetPixelWorldPosition(Params);
+        float3 dir = GetPixelWorldDirection(Params);
+
+        Ray r;
+        r.o = origin;
+        r.d = dir;
+        int isHit = 0;
+
+        HitPoint hp = RayMarching(r, isHit);
+
+        if(isHit)
+        {
+            Params.Color = hp.color;
+        }
+        else
+        {
+            Param.Color = _MainColor * SampleTexture(_MainTex, Params.uv);
+        }
+
+        Param.Color = (sin(_Time) * 0.5 + 0.5) * Param.Color;
+
+    }
+}

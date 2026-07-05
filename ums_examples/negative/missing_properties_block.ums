@@ -1,0 +1,11 @@
+_Code
+{
+    // 错误：本文件缺少 _Properties { ... } 块。
+    // DoParse 会检测到 b_properties_parsed == false，返回 _ParseError: "_Properties Block is missing"
+    #include "/Game/Content/Common/RayMarching.hlsli"
+
+    void MainPS(inout PixelParametersEX Params, inout FPixelMaterialInputs PixelMaterialInputs)
+    {
+        Params.Color = float3(1.0, 0.0, 0.0);
+    }
+}

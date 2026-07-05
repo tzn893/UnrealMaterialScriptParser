@@ -1,0 +1,14 @@
+_Properties
+{
+    // 错误：向量只有 3 个分量，ums_vector4 要求恰好 4 个（times<4>）。
+    _V["V"] = (1.0, 0.0, 0.0);
+    !ShadingModel = Opaque;
+}
+
+_Code
+{
+    void MainPS(inout PixelParametersEX Params)
+    {
+        Params.Color = float3(0.0, 0.0, 0.0);
+    }
+}

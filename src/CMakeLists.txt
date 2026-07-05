@@ -230,3 +230,16 @@ add_library(lexy_experimental INTERFACE)
 add_alias(lexy::experimental lexy_experimental)
 target_compile_definitions(lexy_experimental INTERFACE LEXY_EXPERIMENTAL=1)
 
+
+add_executable(ums)
+set_target_properties(ums PROPERTIES OUTPUT_NAME "ums")
+target_sources(ums PRIVATE UMSParserMain.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../include/UMSParser.h)
+target_link_libraries(ums PRIVATE foonathan::lexy::dev foonathan::lexy::file)
+
+# 开启后，main() 会遍历 negative 目录下所有反例并输出结果到文件
+option(UMS_DO_TEST "Run the negative-example test main (UMS_DO_TEST) instead of the manual parse main" OFF)
+if(UMS_DO_TEST)
+    target_compile_definitions(ums PRIVATE UMS_DO_TEST)
+endif()
+
+

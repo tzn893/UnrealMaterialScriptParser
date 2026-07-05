@@ -1,0 +1,48 @@
+_Properties
+{
+    _Time["Time"] = 1.0f;
+    _Depth["Depth"] = 4.0;
+    !BlendMode = Opaque;
+}
+
+_Code
+{
+    // 空函数体
+    void Noop()
+    {
+    }
+
+    // 深层嵌套控制流（if / for / while / 多层裸块）
+    float Nested(in int depth)
+    {
+        float sum = 0.0f;
+        if (depth > 0)
+        {
+            for (int i = 0; i < depth; i++)
+            {
+                while (i < 10)
+                {
+                    {
+                        {
+                            {
+                                sum += float(i) * _Time;
+                            }
+                        }
+                    }
+                    i++;
+                }
+            }
+        }
+        else
+        {
+            sum = -1.0f;
+        }
+        return sum;
+    }
+
+    void MainPS(inout PixelParametersEX Params)
+    {
+        float v = Nested(int(_Depth));
+        Params.Color = float3(v, v, v);
+    }
+}

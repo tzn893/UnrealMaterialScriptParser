@@ -1,0 +1,22 @@
+HitPoint RayMarching(Ray r, inout int isHit)
+{
+    const float max_distance = 1000.0f;
+    const float step = 0.1f;
+
+    float3 origin = r.o;
+    HitPoint hp;
+    isHit = 0;
+
+    for(float t = 0; t < max_distance; t += step)
+    {
+        float3 p = origin + r.d * t;
+        if(sdf(p) < 0.0f)
+        {
+            hp = rayHit(p);
+            isHit = 1;
+            break;
+        }
+    }
+
+    return hp;
+}

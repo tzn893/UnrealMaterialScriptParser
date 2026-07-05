@@ -1,0 +1,12 @@
+﻿_Properties
+{
+    _MainColor["MainColor"]=(1.0,0.0,0.0,0.0);
+}
+
+_Code
+{
+    void MainPS(inout FMaterialPixelParameters Parameters,  inout FPixelMaterialInputs PixelMaterialInputs)
+    {
+        Parameters.BaseColor = float3(1.0, 0, 0, 0);
+    }
+}
